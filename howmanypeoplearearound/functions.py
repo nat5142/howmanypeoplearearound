@@ -6,19 +6,21 @@ import time
 def which(program):
     """Determines whether program exists
     """
-    def is_exe(fpath):
-        return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
+    def is_exe(filepath):
+        return os.path.isfile(filepath) and os.access(filepath, os.X_OK)
 
-    fpath, fname = os.path.split(program)
-    if fpath:
+    path, filename = os.path.split(program)
+    if path:
         if is_exe(program):
             return program
     else:
-        for path in os.environ["PATH"].split(os.pathsep):
-            path = path.strip('"')
-            exe_file = os.path.join(path, program)
+        for abspath in os.environ['PATH'].split(os.pathsep):
+            abspath = abspath.strip('"')
+            exe_file = os.path.join(abspath, program)
             if is_exe(exe_file):
                 return exe_file
+
+    raise FileNotFoundError('`{}` executable file not found in PATH: {}'.format(program, os.environ['PATH']))
 
 
 def show_timer(timeleft):
