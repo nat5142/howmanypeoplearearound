@@ -1,0 +1,1 @@
+from howmanypeoplearearound.scanner import Scanner
