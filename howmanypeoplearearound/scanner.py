@@ -2,8 +2,7 @@ import os
 import subprocess
 
 from howmanypeoplearearound.oui import load_dictionary, download_oui
-from howmanypeoplearearound.analysis import analyze_file
-from howmanypeoplearearound.functions import which, file_to_mac_set
+from howmanypeoplearearound.functions import which
 from howmanypeoplearearound.scan_result import ScanResult
 
 try:  # Python 3
@@ -31,7 +30,8 @@ devices = [
 
 class Scanner(object):
 
-    def __init__(self, adapter='', scantime=10, dictionary='oui.txt', nearby=False, allmacaddresses=False, port=8001, targetmacs=False):
+    def __init__(self, adapter='', scantime=10, dictionary='oui.txt', nearby=False, allmacaddresses=False, port=8001,
+                 targetmacs=False):
         self.adapter = adapter
         self.scantime = scantime
         self.dictionary = dictionary
@@ -77,10 +77,10 @@ class Scanner(object):
         return unique_devices
 
     def scan(self):
-
         tshark = which('tshark')
 
         dump_file = '/tmp/tshark-temp'
+
         # Scan with tshark
         command = [tshark, '-I', '-i', str(self.adapter), '-a', 'duration:{}'.format(self.scantime), '-w', dump_file]
         run_tshark = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
