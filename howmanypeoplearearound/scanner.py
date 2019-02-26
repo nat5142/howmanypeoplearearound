@@ -83,8 +83,11 @@ class Scanner(object):
 
         # Scan with tshark
         command = [tshark, '-I', '-i', str(self.adapter), '-a', 'duration:{}'.format(self.scantime), '-w', dump_file]
-        run_tshark = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        stdout, _ = run_tshark.communicate()
+        run_tshark = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = run_tshark.communicate()
+
+        if stderr:
+            raise Exception(stderr.decode("utf-8"))
 
         # Read tshark output
         command = [
@@ -96,8 +99,11 @@ class Scanner(object):
             'radiotap.dbm_antsignal'
         ]
 
-        run_tshark = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        output, _ = run_tshark.communicate()
+        run_tshark = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        output, stderr = run_tshark.communicate()
+
+        if stderr:
+            raise Exception(stderr.decode("utf-8"))
 
         return ScanResult(output).process()
 
