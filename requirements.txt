@@ -1,0 +1,4 @@
+certifi==2018.11.29
+Click==7.0
+netifaces==0.10.9
+pick==0.6.4
