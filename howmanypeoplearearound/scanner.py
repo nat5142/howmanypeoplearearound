@@ -2,12 +2,14 @@ import os
 import subprocess
 
 from howmanypeoplearearound.oui import load_dictionary, download_oui
-from howmanypeoplearearound.functions import which
+from howmanypeoplearearound.functions import which, file_to_mac_set
 from howmanypeoplearearound.scan_result import ScanResult
 
-try:  # Python 3
+try:
+    # Python 3
     from urllib.request import urlopen
-except ImportError:  # Python 2
+except ImportError:
+    # Python 2
     from urllib2 import urlopen
 
 devices = [
@@ -43,7 +45,7 @@ class Scanner(object):
         self.oui = self._get_oui(dictionary)
 
     def main(self):
-        scan_results = self.scan()
+        scan_results = self.scan_network()
 
         if not scan_results:
             return []
@@ -52,14 +54,12 @@ class Scanner(object):
             scan_results[key] = float(sum(value)) / float(len(value))
 
         # TODO: Rip this out when you're setting self.target_macs with a SQLAlchemy query
-        targetmacset = set()
-        if self.targetmacs:
-            targetmacset = file_to_mac_set(self.targetmacs)
+        target_mac_set = file_to_mac_set(self.targetmacs) if self.targetmacs else set()
 
         # Find target MAC address in found_macs
-        if targetmacset:
+        if target_mac_set:
             for mac in scan_results:
-                if mac in targetmacset:
+                if mac in target_mac_set:
                     # TODO: Don't forget the print statements
                     print("Found MAC address: %s" % mac)
                     print("rssi: %s" % str(scan_results[mac]))
@@ -76,7 +76,7 @@ class Scanner(object):
 
         return unique_devices
 
-    def scan(self):
+    def scan_network(self):
         tshark = which('tshark')
 
         dump_file = '/tmp/tshark-temp'
