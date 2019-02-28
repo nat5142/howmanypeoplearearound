@@ -33,14 +33,14 @@ devices = [
 class Scanner(object):
 
     def __init__(self, adapter='', scantime=10, dictionary='oui.txt', nearby=False, allmacaddresses=False, port=8001,
-                 targetmacs=False):
+                 targetmacs=False, dumpfile='/tmp/tshark-tmp'):
         self.adapter = adapter
         self.scantime = scantime
-        self.dictionary = dictionary
         self.nearby = nearby
         self.allmacaddresses = allmacaddresses
         self.port = port
-        self.targetmacs = targetmacs  # TODO: Make this attr the result of SQLAlchemy query
+        self.targetmacs = targetmacs  # TODO: Make this attr the result of SQLAlchemy query?
+        self.dumpfile = dumpfile
 
         self.oui = self._get_oui(dictionary)
 
@@ -79,33 +79,39 @@ class Scanner(object):
     def scan_network(self):
         tshark = which('tshark')
 
-        dump_file = '/tmp/tshark-temp'
-
         # Scan with tshark
-        command = [tshark, '-I', '-i', str(self.adapter), '-a', 'duration:{}'.format(self.scantime), '-w', dump_file]
-        run_tshark = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        stdout, stderr = run_tshark.communicate()
-
-        if stderr:
-            raise Exception(stderr.decode("utf-8"))
+        command = [tshark, '-I', '-i', str(self.adapter), '-a', 'duration:{}'.format(self.scantime), '-w', self.dumpfile]
+        stdout, stderr = self.run_subprocess(command)
 
         # Read tshark output
         command = [
             tshark, '-r',
-            dump_file, '-T',
+            self.dumpfile, '-T',
             'fields', '-e',
             'wlan.sa', '-e',
             'wlan.bssid', '-e',
             'radiotap.dbm_antsignal'
         ]
 
-        run_tshark = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        output, stderr = run_tshark.communicate()
-
-        if stderr:
-            raise Exception(stderr.decode("utf-8"))
+        output, stderr = self.run_subprocess(command)
 
         return ScanResult(output).process()
+
+    def run_subprocess(self, command):
+        stdout, stderr = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
+
+        if stderr and not self.validate_output(stderr):
+            raise Exception(stderr.decode('utf-8'))
+
+        return stdout, stderr
+
+    @staticmethod
+    def validate_output(stderr):
+        item = stderr.decode('utf-8').strip('\n').split('\n')[-1].split(' ')[0]
+        try:
+            return int(item) > 0
+        except ValueError:
+            return False
 
     @staticmethod
     def _get_oui(dictionary):

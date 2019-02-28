@@ -1,5 +1,12 @@
 import click
 from howmanypeoplearearound.scanner import Scanner
+import logging
+import sys
+
+logger = logging.getLogger()
+handler = logging.StreamHandler(sys.stdout)
+logger.addHandler(handler)
+logger.setLevel(logging.INFO)
 
 
 @click.command()
@@ -16,7 +23,7 @@ def main(adapter, scantime, dictionary, nearby, allmacaddresses, port, sort, tar
     import json
     while True:
         results = scanner.main()
-        print(json.dumps(results, indent=2))
+        logger.info(json.dumps(results, indent=2))
 
 
 if __name__ == '__main__':
