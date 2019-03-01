@@ -1,6 +1,8 @@
-try: #python3
+try:
+    # Python3
     from urllib.request import urlopen
-except: #python2
+except ImportError:
+    # Python2
     from urllib2 import urlopen
 
 

@@ -107,6 +107,9 @@ class Scanner(object):
 
     @staticmethod
     def validate_output(stderr):
+        """Method that ensures content was returned from the network scan. The `run_subprocess` method will
+        return a message as stderr that will include a number of bytes that the tshark scan yields. If that
+        number is greater than 0, the output process should proceed."""
         item = stderr.decode('utf-8').strip('\n').split('\n')[-1].split(' ')[0]
         try:
             return int(item) > 0
