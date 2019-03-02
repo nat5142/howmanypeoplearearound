@@ -1,8 +1,6 @@
-import os
 import subprocess
 
-from howmanypeoplearearound.oui import load_dictionary, download_oui
-from howmanypeoplearearound.functions import which, file_to_mac_set
+from howmanypeoplearearound.functions import which
 from howmanypeoplearearound.scan_result import ScanResult
 
 try:
@@ -32,7 +30,7 @@ devices = [
 
 class Scanner(object):
 
-    def __init__(self, adapter='', scantime=10, dictionary='oui.txt', nearby=False, allmacaddresses=False, port=8001,
+    def __init__(self, adapter='', scantime=10, nearby=False, allmacaddresses=False, port=8001,
                  targetmacs=False, dumpfile='/tmp/tshark-tmp'):
         self.adapter = adapter
         self.scantime = scantime
@@ -41,40 +39,6 @@ class Scanner(object):
         self.port = port
         self.targetmacs = targetmacs  # TODO: Make this attr the result of SQLAlchemy query?
         self.dumpfile = dumpfile
-
-        self.oui = self._get_oui(dictionary)
-
-    def main(self):
-        scan_results = self.scan_network()
-
-        if not scan_results:
-            return []
-
-        for key, value in scan_results.items():
-            scan_results[key] = float(sum(value)) / float(len(value))
-
-        # TODO: Rip this out when you're setting self.target_macs with a SQLAlchemy query
-        target_mac_set = file_to_mac_set(self.targetmacs) if self.targetmacs else set()
-
-        # Find target MAC address in found_macs
-        if target_mac_set:
-            for mac in scan_results:
-                if mac in target_mac_set:
-                    # TODO: Don't forget the print statements
-                    print("Found MAC address: %s" % mac)
-                    print("rssi: %s" % str(scan_results[mac]))
-
-        unique_devices = []
-
-        for mac in scan_results:
-            oui_id = 'Not in OUI'
-            if mac[:8] in self.oui:
-                oui_id = self.oui[mac[:8]]
-            if self.allmacaddresses or oui_id in devices:
-                if not self.nearby or (self.nearby and scan_results[mac] > -70):
-                    unique_devices.append({'company': oui_id, 'rssi': scan_results[mac], 'mac': mac})
-
-        return unique_devices
 
     def scan_network(self):
         tshark = which('tshark')
@@ -95,7 +59,7 @@ class Scanner(object):
 
         output, stderr = self.run_subprocess(command)
 
-        return ScanResult(output).process()
+        return ScanResult(output)
 
     def run_subprocess(self, command):
         stdout, stderr = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
@@ -115,10 +79,3 @@ class Scanner(object):
             return int(item) > 0
         except ValueError:
             return False
-
-    @staticmethod
-    def _get_oui(dictionary):
-        if (not os.path.isfile(dictionary)) or (not os.access(dictionary, os.R_OK)):
-            download_oui(dictionary)
-
-        return load_dictionary(dictionary)
