@@ -1,13 +1,14 @@
 import os
 
-from howmanypeoplearearound.oui import load_dictionary, download_oui
+from howmanypeoplearearound.oui import collect_oui
 
 
 class ScanResult(object):
 
-    def __init__(self, tshark_output, dictionary='oui.txt'):
+    def __init__(self, tshark_output, dictionary='oui.json'):
+        # TODO: Dictionary should be moved out of here. Should probably be an attribute on the Scanner obj
         self.tshark_output = tshark_output
-        self.oui = self._get_oui(dictionary)
+        self.oui = collect_oui(dictionary)
         self.data = self.process()
 
     def process(self):
@@ -21,18 +22,24 @@ class ScanResult(object):
             ]
         """
         found_macs = {}
+        print(len(self.tshark_output.decode('utf-8').split('\n')))
         for line in self.tshark_output.decode('utf-8').split('\n'):
             if not line.strip():
                 continue
-            mac = line.split()[0].strip().split(',')[0]
+
+            mac = line.split()[0].strip()
             dats = line.split()
-            if len(dats) == 3:
-                if ':' not in dats[0] or len(dats) != 3:
-                    continue
+
+            if len(dats) == 3 and ':' in dats[0]:
                 if mac not in found_macs:
                     found_macs[mac] = []
+
                 dats_2_split = dats[2].split(',')
+
+                # wtf?
                 if len(dats_2_split) > 1:
+                    print('YO THERE\'s MORE THAN ONE')
+                    import pdb ; pdb.set_trace()
                     rssi = float(dats_2_split[0]) / 2 + float(dats_2_split[1]) / 2
                 else:
                     rssi = float(dats_2_split[0])
@@ -60,12 +67,4 @@ class ScanResult(object):
         if not target_macs:
             raise AttributeError('A list of target MAC addresses must be specified for this function')
 
-        return [device for device in self.data if device['mac'] in target_macs]
-
-    @staticmethod
-    def _get_oui(dictionary):
-        if (not os.path.isfile(dictionary)) or (not os.access(dictionary, os.R_OK)):
-            download_oui(dictionary)
-
-        return load_dictionary(dictionary)
-
+        return [device for device in self.data if device['mac'] in [t.lower() for t in target_macs]]
