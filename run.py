@@ -15,9 +15,8 @@ logger.setLevel(logging.INFO)
 @click.option('-n', '--nearby', help='only quantify signals that are nearby (rssi > -70)', is_flag=True)
 @click.option('--allmacaddresses', help='do not check MAC addresses against the OUI database to only recognize known cellphone manufacturers', is_flag=True)  # noqa
 @click.option('--port', default=8001, help='port to use when serving analysis')
-@click.option('--targetmacs', help='read a file that contains target MAC addresses', default='')
-def main(adapter, scantime, nearby, allmacaddresses, port, targetmacs):
-    scanner = Scanner(adapter, scantime, nearby, allmacaddresses, port, targetmacs)
+def main(adapter, scantime, nearby, allmacaddresses, port):
+    scanner = Scanner(adapter, scantime, nearby, allmacaddresses, port)
     import json
     while True:
         results = scanner.scan_network()

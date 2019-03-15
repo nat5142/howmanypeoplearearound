@@ -11,6 +11,15 @@ class ScanResult(object):
         self.data = self.process()
 
     def process(self):
+        """ Converts raw tshark output into a list of dictionaries representing unique devices
+
+        :return: list of dictionaries representing unique devices. Format:
+            return [
+                {'company': Apple, Inc., 'rssi': -XX.X, 'mac': XX:YY:ZZ:11:22:33},
+                {'company': Samsung, Inc., 'rssi': -YY.Y, 'mac': AA:BB:CC:44:55:66},
+                ...
+            ]
+        """
         found_macs = {}
         for line in self.tshark_output.decode('utf-8').split('\n'):
             if not line.strip():

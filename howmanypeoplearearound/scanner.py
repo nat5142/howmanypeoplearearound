@@ -30,14 +30,12 @@ devices = [
 
 class Scanner(object):
 
-    def __init__(self, adapter='', scantime=10, nearby=False, allmacaddresses=False, port=8001,
-                 targetmacs=False, dumpfile='/tmp/tshark-tmp'):
+    def __init__(self, adapter='', scantime=10, nearby=False, allmacaddresses=False, port=8001, dumpfile='/tmp/tshark-tmp'):
         self.adapter = adapter
         self.scantime = scantime
         self.nearby = nearby
         self.allmacaddresses = allmacaddresses
         self.port = port
-        self.targetmacs = targetmacs  # TODO: Make this attr the result of SQLAlchemy query?
         self.dumpfile = dumpfile
 
     def scan_network(self):
