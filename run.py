@@ -21,7 +21,7 @@ def main(adapter, scantime, nearby, allmacaddresses, port):
     while True:
         results = scanner.scan_network()
         import pdb ; pdb.set_trace()
-        logger.info(json.dumps(results, indent=2))
+        logger.info(json.dumps(results.data, indent=2))
 
 
 if __name__ == '__main__':
