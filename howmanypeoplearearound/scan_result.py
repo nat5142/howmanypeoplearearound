@@ -1,5 +1,3 @@
-import os
-
 from howmanypeoplearearound.oui import collect_oui
 
 
@@ -22,7 +20,6 @@ class ScanResult(object):
             ]
         """
         found_macs = {}
-        print(len(self.tshark_output.decode('utf-8').split('\n')))
         for line in self.tshark_output.decode('utf-8').split('\n'):
             if not line.strip():
                 continue
@@ -38,11 +35,10 @@ class ScanResult(object):
 
                 # wtf?
                 if len(dats_2_split) > 1:
-                    print('YO THERE\'s MORE THAN ONE')
-                    import pdb ; pdb.set_trace()
                     rssi = float(dats_2_split[0]) / 2 + float(dats_2_split[1]) / 2
                 else:
                     rssi = float(dats_2_split[0])
+
                 found_macs[mac].append(rssi)
 
         if not found_macs:
@@ -64,7 +60,5 @@ class ScanResult(object):
         :type target_macs: list[str]
         :return: list of known devices in format of self.data
         """
-        if not target_macs:
-            raise AttributeError('A list of target MAC addresses must be specified for this function')
 
         return [device for device in self.data if device['mac'] in [t.lower() for t in target_macs]]

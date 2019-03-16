@@ -8,8 +8,8 @@ except ImportError:
     from urllib2 import urlopen
 
 
-def collect_oui(oui_filename='oui.json'):
-    if (not os.path.isfile(oui_filename)) or (not os.access(oui_filename, os.R_OK)):
+def collect_oui(oui_filename='oui.json', force_download=False):
+    if not ((os.path.isfile(oui_filename) or os.access(oui_filename, os.R_OK)) or force_download):
         oui_text = download_oui()
         oui_dict = write_oui_to_json(oui_filename, oui_text)
     else:
@@ -22,7 +22,6 @@ def collect_oui(oui_filename='oui.json'):
 def download_oui():
     """Downloads plaintext file consisting of all Organizationally Unique Identifiers registered by
     the Institute of Electrical and Electronics Engineers Registration Authority."""
-    print('downloading')
     oui_text = urlopen('http://standards-oui.ieee.org/oui/oui.txt', timeout=10).read().decode('utf-8')
 
     return oui_text
